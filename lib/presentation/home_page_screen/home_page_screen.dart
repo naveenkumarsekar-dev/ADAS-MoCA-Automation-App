@@ -25,7 +25,7 @@ class HomePageScreen extends StatelessWidget {
                 _buildCalendarRow(context),
                 SizedBox(height: 18.v),
                 Container(
-                    height: 427.v,
+                    height: 428.v,
                     width: 360.h,
                     decoration: BoxDecoration(
                         color: appTheme.blueGray100,
