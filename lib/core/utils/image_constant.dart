@@ -45,11 +45,11 @@ class ImageConstant {
 
   static String imgLock = '$imagePath/img_lock.svg';
 
-  static String imgClockBlack90002 = '$imagePath/img_clock_black_900_02.svg';
+  static String imgClockBlack90002 = '$imagePath/img_clock_black_900_02.png';
 
   static String imgUserBlack90002 = '$imagePath/img_user_black_900_02.svg';
 
-  static String imgClock = '$imagePath/img_clock.svg';
+  static String imgClock = '$imagePath/img_clock.png';
 
   static String imgUserBlack9000245x61 =
       '$imagePath/img_user_black_900_02_45x61.svg';
@@ -59,7 +59,7 @@ class ImageConstant {
   static String imgVector = '$imagePath/img_vector.svg';
 
   static String imgClockBlack9000234x34 =
-      '$imagePath/img_clock_black_900_02_34x34.svg';
+      '$imagePath/img_clock_black_900_02_34x34.png';
 
   static String imgImage9 = '$imagePath/img_image_9.png';
 
