@@ -1,10 +1,54 @@
-import 'package:adas_development/core/app_export.dart';
+import 'dart:typed_data';
+import 'package:adas_development/core/scoring/clock_scoring_module.dart';
+import 'package:flutter/material.dart';
+import 'package:adas_development/core/app_export.dart'; // Import the DrawingArea widget
 import 'package:adas_development/widgets/custom_elevated_button.dart';
 import 'package:adas_development/widgets/custom_icon_button.dart';
-import 'package:flutter/material.dart';
+import 'package:adas_development/core/services/firebase_storage_service.dart';
 
-class VisuospatialPageThreeScreen extends StatelessWidget {
+class VisuospatialPageThreeScreen extends StatefulWidget {
   const VisuospatialPageThreeScreen({Key? key}) : super(key: key);
+
+  @override
+  _VisuospatialPageThreeScreenState createState() =>
+      _VisuospatialPageThreeScreenState();
+}
+
+class _VisuospatialPageThreeScreenState extends State<VisuospatialPageThreeScreen> {
+  GlobalKey<DrawingAreaState> _drawingAreaKey = GlobalKey<DrawingAreaState>();
+  late ClockScoringModule _clockScoringModule;
+  // final FirebaseStorageService _firebaseStorageService = FirebaseStorageService();
+
+  @override
+  void initState() {
+    super.initState();
+    _clockScoringModule = ClockScoringModule(); // Initialize the clock scoring module
+  }
+
+  void _onImageCaptured(ByteData imageBytes) async {
+    // Convert ByteData to Uint8List
+    Uint8List imageUint8List = imageBytes.buffer.asUint8List();
+
+    // Use the clock scoring module
+    double prediction = await _clockScoringModule.predictClock(imageUint8List);
+    int score = prediction > 0.5 ? 3 : 0;
+    print('score:$score');
+
+    // // Upload the image to Firebase
+    // String path = 'images/clock_${DateTime.now().millisecondsSinceEpoch}.png';
+    // String imageUrl =
+    //     await _firebaseStorageService.uploadImage(imageUint8List, path);
+
+    // if (imageUrl.isNotEmpty) {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     SnackBar(content: Text('Image uploaded successfully. Score: $score')),
+    //   );
+    // } else {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     SnackBar(content: Text('Failed to upload image.')),
+    //   );
+    // }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,44 +105,13 @@ class VisuospatialPageThreeScreen extends StatelessWidget {
                           style: CustomTextStyles.bodyMedium_1
                               .copyWith(height: 2.07))),
                   SizedBox(height: 7.v),
-                  SizedBox(
-                      height: 506.v,
-                      width: 374.h,
-                      child: Stack(alignment: Alignment.bottomRight, children: [
-                        Align(
-                            alignment: Alignment.center,
-                            child: GestureDetector(
-                                onTap: () {
-                                  onTapView(context);
-                                },
-                                child: Container(
-                                    height: 502.v,
-                                    width: 374.h,
-                                    decoration: BoxDecoration(
-                                        color: appTheme.blueGray100
-                                            .withOpacity(0.51),
-                                        borderRadius:
-                                            BorderRadius.circular(50.h))))),
-                        CustomImageView(
-                            imagePath: ImageConstant.imgCharmCross,
-                            height: 34.adaptSize,
-                            width: 34.adaptSize,
-                            alignment: Alignment.bottomRight,
-                            margin: EdgeInsets.only(right: 113.h)),
-                        CustomImageView(
-                            imagePath: ImageConstant.imgFaSolidEraser,
-                            height: 32.adaptSize,
-                            width: 32.adaptSize,
-                            alignment: Alignment.bottomCenter),
-                        CustomImageView(
-                            imagePath: ImageConstant.imgEdit,
-                            height: 26.adaptSize,
-                            width: 26.adaptSize,
-                            alignment: Alignment.bottomLeft,
-                            margin: EdgeInsets.only(left: 130.h, bottom: 3.v))
-                      ])),
+                  Expanded(
+                      child: DrawingArea(
+                    key: _drawingAreaKey,
+                    onImageCaptured: _onImageCaptured,
+                  )),
                   SizedBox(height: 33.v),
-                  _buildPreviousRow(context)
+                  _buildPreviousRow(context),
                 ]))));
   }
 
@@ -136,9 +149,14 @@ class VisuospatialPageThreeScreen extends StatelessWidget {
                 onTapPrevious(context);
               }),
           CustomElevatedButton(
-              width: 146.h,
-              text: "Next",
-              buttonTextStyle: theme.textTheme.titleSmall!)
+            width: 146.h,
+            text: "Finish",
+            buttonTextStyle: theme.textTheme.titleSmall!,
+            onPressed: () async {
+              await _drawingAreaKey.currentState?.captureImage();
+              onTapFinish(context);
+            },
+          )
         ]));
   }
 
@@ -147,13 +165,13 @@ class VisuospatialPageThreeScreen extends StatelessWidget {
     Navigator.pushNamed(context, AppRoutes.cognitiveAssessmentPageOneScreen);
   }
 
-  /// Navigates to the vsPage3CompletedScreen when the action is triggered.
-  onTapView(BuildContext context) {
-    Navigator.pushNamed(context, AppRoutes.vsPage3CompletedScreen);
+  /// Navigates to the cognitiveAssessmentPageScreen when the action is triggered.
+  onTapFinish(BuildContext context) {
+    Navigator.pushNamed(context, AppRoutes.cognitiveAssessmentPageScreen);
   }
 
-  /// Navigates to the vsPage2CompletedScreen when the action is triggered.
+  /// Navigates to the visuospatialPageTwoScreen when the action is triggered.
   onTapPrevious(BuildContext context) {
-    Navigator.pushNamed(context, AppRoutes.vsPage2CompletedScreen);
+    Navigator.pushNamed(context, AppRoutes.visuospatialPageTwoScreen);
   }
 }

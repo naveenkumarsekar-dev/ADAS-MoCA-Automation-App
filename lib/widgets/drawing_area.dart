@@ -1,12 +1,18 @@
+import 'dart:typed_data';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 class DrawingArea extends StatefulWidget {
+  final Function(ByteData) onImageCaptured;
+
+  DrawingArea({required this.onImageCaptured, Key? key}) : super(key: key);
   @override
-  _DrawingAreaState createState() => _DrawingAreaState();
+  DrawingAreaState createState() => DrawingAreaState();
 }
 
-class _DrawingAreaState extends State<DrawingArea> {
+class DrawingAreaState extends State<DrawingArea> {
+  GlobalKey _globalKey = GlobalKey();
   List<Offset?> points = [];
 
   @override
@@ -21,16 +27,33 @@ class _DrawingAreaState extends State<DrawingArea> {
       onPanEnd: (details) {
         points.add(null);
       },
-      child: CustomPaint(
-        painter: MyPainter(points),
-        size: Size.infinite,
+      child: RepaintBoundary(
+        key: _globalKey,
+        child: Stack(
+          children: [
+            CustomPaint(
+              painter: MyPainter(points),
+              size: Size.infinite,
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  Future<void> captureImage() async {
+    RenderRepaintBoundary boundary =
+        _globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+    var image = await boundary.toImage();
+    ByteData? byteData = await image.toByteData(format: ImageByteFormat.png);
+    if (byteData != null) {
+      widget.onImageCaptured(byteData);
+    }
   }
 }
 
 class MyPainter extends CustomPainter {
-  final List<Offset?> points;
+  List<Offset?> points;
 
   MyPainter(this.points);
 
