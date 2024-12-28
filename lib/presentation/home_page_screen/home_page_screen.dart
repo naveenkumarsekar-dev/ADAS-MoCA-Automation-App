@@ -18,7 +18,7 @@ class HomePageScreen extends StatelessWidget {
                 SizedBox(height: 20.v),
                 Text("Hello ",
                     style: CustomTextStyles.headlineMediumOnPrimaryContainer),
-                Text("Tomy",
+                Text("Naveen",
                     style: CustomTextStyles
                         .headlineLargePoppinsOnPrimaryContainer),
                 SizedBox(height: 38.v),
@@ -28,7 +28,7 @@ class HomePageScreen extends StatelessWidget {
                     height: 428.v,
                     width: 360.h,
                     decoration: BoxDecoration(
-                        color: appTheme.blueGray100,
+                        color: Colors.white, // Change the color to white
                         borderRadius: BorderRadius.circular(31.h)))
               ])),
         ),
@@ -45,7 +45,7 @@ class HomePageScreen extends StatelessWidget {
               width: 71.h,
               margin: EdgeInsets.symmetric(vertical: 6.v),
               decoration: BoxDecoration(
-                  color: appTheme.blueGray100,
+                  color: Colors.white, // Change the color to white
                   borderRadius: BorderRadius.circular(35.h))),
           Spacer(flex: 43),
           CustomImageView(
@@ -133,7 +133,7 @@ class HomePageScreen extends StatelessWidget {
 
   /// Navigates to the signInOneScreen when the action is triggered.
   onTapImgTelevision(BuildContext context) {
-    Navigator.pushNamed(context, AppRoutes.signInOneScreen);
+    // Navigator.pushNamed(context, AppRoutes.signInOneScreen);
   }
 
   /// Navigates to the cognitiveAssessmentPageOneScreen when the action is triggered.

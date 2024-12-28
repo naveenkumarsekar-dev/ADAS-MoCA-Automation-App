@@ -1,9 +1,15 @@
-import 'dart:typed_data';
-import 'package:adas_development/core/scoring/clock_scoring_module.dart';
+import 'package:adas_development/widgets/drawing_area_cube.dart';
 import 'package:flutter/material.dart';
 import 'package:adas_development/core/app_export.dart';// Import the DrawingArea widget
 import 'package:adas_development/widgets/custom_elevated_button.dart';
 import 'package:adas_development/widgets/custom_icon_button.dart';
+// TO UNDO: AFTER THE CUBE DATASET IS DONE
+// import 'dart:io'; 
+// import 'package:path_provider/path_provider.dart';
+// import 'package:firebase_storage/firebase_storage.dart';
+// import 'package:adas_development/core/scoring/clock_scoring.dart';
+// import 'package:adas_development/core/scoring/cube_scoring.dart';
+
 
 class VisuospatialPageTwoScreen extends StatefulWidget {
   const VisuospatialPageTwoScreen({Key? key}) : super(key: key);
@@ -13,28 +19,68 @@ class VisuospatialPageTwoScreen extends StatefulWidget {
 }
 
 class _VisuospatialPageTwoScreenState extends State<VisuospatialPageTwoScreen> {
-  GlobalKey<DrawingAreaState> _drawingAreaKey = GlobalKey<DrawingAreaState>();
-  late ClockScoringModule _clockScoringModule;
-
+  int? score; // Variable to store the score
+  GlobalKey<CubeDrawingAreaState> _drawingAreaKey = GlobalKey<CubeDrawingAreaState>();
+  // UNDO AFTER CUBE DATASET IS DONE
+  // late CubeScoringModule _cubeScoringModule;
   @override
-  void initState() {
-    super.initState();
-    _clockScoringModule = ClockScoringModule(); // Initialize the clock scoring module
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Retrieve the score from the arguments
+    final args = ModalRoute.of(context)?.settings.arguments as Map?;
+    if (args != null && args.containsKey("score")) {
+      score = args["score"] as int?;
+      print("Score received: $score"); // Debugging purpose
+    }
   }
+  // UNDO AFTER CUBE DATASET IS DONE
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _cubeScoringModule = CubeScoringModule(); // Initialize the cube scoring module
+  // }
+  void _onImageCaptured(String imagePath) async {
 
-  void _onImageCaptured(ByteData imageBytes) async{
-    // Convert ByteData to Uint8List
-    Uint8List imageUint8List = imageBytes.buffer.asUint8List();
+  // UNDO AFTER CUBE DATASET IS DONE
+  // // Download the image from Firebase Storage
+  // File? imageFile = await _downloadImageFile(imagePath);
+  // print("Image downloaded: ${imageFile?.path}");
 
-    // Use the clock scoring module
-    double prediction = await _clockScoringModule.predictClock(imageUint8List);
-    int score = prediction > 0.5 ? 3 : 0;
+  // if (imageFile != null) {
+  //   // Use the cube scoring module with the downloaded image file
+  //   int updatedScore = await _cubeScoringModule.predictCube(imageFile, context, score ?? 0);
 
-    print('Score: $score');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Score: $score')),
-    );
-  }
+  //   // Update the local score
+  //   setState(() {
+  //     score = updatedScore;
+  //   });
+
+  //   print("Updated Score: $score");
+  // } else {
+  //   print("Failed to download the image.");
+  // }
+}
+
+// UNDO AFTER CUBE DATASET IS DONE
+// // Function to download the image file from Firebase Storage
+// Future<File?> _downloadImageFile(String imagePath) async {
+//   try {
+//     // Get the Firebase Storage reference
+//     final Reference storageRef = FirebaseStorage.instance.ref().child(imagePath);
+
+//     // Get the directory to save the downloaded image
+//     final Directory tempDir = await getTemporaryDirectory();
+//     final String tempPath = '${tempDir.path}/temp_image.jpg';
+  
+//     // Download and save the image to a file
+//     await storageRef.writeToFile(File(tempPath));
+
+//     return File(tempPath);
+//   } catch (e) {
+//     print("Error downloading image: $e");
+//     return null;
+//   }
+// }
 
   
 
@@ -48,7 +94,7 @@ class _VisuospatialPageTwoScreenState extends State<VisuospatialPageTwoScreen> {
                 child: Column(children: [
                   SizedBox(height: 4.v),
                   _buildClockRow(context),
-                  SizedBox(height: 56.v),
+                  SizedBox(height: 10.v),
                   Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                     Container(
                         width: 27.adaptSize,
@@ -73,12 +119,12 @@ class _VisuospatialPageTwoScreenState extends State<VisuospatialPageTwoScreen> {
                             borderRadius: BorderRadiusStyle.roundedBorder12),
                         child: Text("3", style: theme.textTheme.bodyMedium))
                   ]),
-                  SizedBox(height: 48.v),
+                  SizedBox(height: 10.v),
                   CustomImageView(
                       imagePath: ImageConstant.imgImage9,
                       height: 101.v,
                       width: 103.h),
-                  SizedBox(height: 26.v),
+                  SizedBox(height: 10.v),
                   SizedBox(
                       width: 243.h,
                       child: Text(
@@ -87,14 +133,22 @@ class _VisuospatialPageTwoScreenState extends State<VisuospatialPageTwoScreen> {
                           overflow: TextOverflow.ellipsis,
                           textAlign: TextAlign.center,
                           style: CustomTextStyles.bodyMedium_1.copyWith(height: 2.07))),
-                  SizedBox(height: 22.v),
-                  Expanded(
-                    child: DrawingArea(
+                  SizedBox(height: 10.v),
+                  Container(
+                    width:double.infinity, // Uses the entire width of the screen
+                    height: MediaQuery.of(context).size.height * 0.5,
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Colors.black, // Black border color
+                        width: 2.0, // Border width
+                      ),
+                    ),
+                    child: CubeDrawingArea(
                       key: _drawingAreaKey,
                       onImageCaptured: _onImageCaptured,
                     ),
-                  ), // Add drawing area here
-                  SizedBox(height: 30.v),
+                  ),
+                  SizedBox(height: 5.v),
                   _buildPreviousRow(context)
                 ]))));
   }
@@ -104,12 +158,12 @@ class _VisuospatialPageTwoScreenState extends State<VisuospatialPageTwoScreen> {
         padding: EdgeInsets.only(left: 23.h, right: 20.h),
         child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
           CustomIconButton(
-              height: 56.adaptSize,
-              width: 56.adaptSize,
+              height: 45.adaptSize,
+              width: 45.adaptSize,
               onTap: () {
                 onTapBtnClock(context);
               },
-              child: CustomImageView(imagePath: ImageConstant.imgClockBlack90002)),
+              child: CustomImageView(imagePath: ImageConstant.imgClockBlack9000234x34)),
           Padding(
               padding: EdgeInsets.only(left: 18.h, top: 11.v, bottom: 8.v),
               child: Text("Visuospatial / Executive",
@@ -133,22 +187,27 @@ class _VisuospatialPageTwoScreenState extends State<VisuospatialPageTwoScreen> {
               text: "Next",
               buttonTextStyle: theme.textTheme.titleSmall!,
               onPressed: () async {
-                // await _drawingAreaKey.currentState?.captureImage();
+                await _drawingAreaKey.currentState?.captureAndUploadImage();
                 onTapNext(context);
               })
         ]));
   }
 
   void onTapBtnClock(BuildContext context) {
-    Navigator.pushNamed(context, AppRoutes.cognitiveAssessmentPageOneScreen);
+    Navigator.pushNamed(context, AppRoutes.visuospatialPageOneScreen);
   }
 
   void onTapPrevious(BuildContext context) {
-    Navigator.pushNamed(context, AppRoutes.vsPage1CompletedScreen);
+    Navigator.pushNamed(context, AppRoutes.visuospatialPageOneScreen);
   }
 
-  void onTapNext(BuildContext context) {
-    Navigator.pushNamed(context, AppRoutes.visuospatialPageThreeScreen);
+  /// Navigates to the visuospatialPageThreeScreen when the action is triggered.
+  onTapNext(BuildContext context) {
+    Navigator.pushNamed(
+      context,
+      AppRoutes.visuospatialPageThreeScreen,
+      arguments: {"score": score}, // Pass the score as an argument
+    );
   }
 
   

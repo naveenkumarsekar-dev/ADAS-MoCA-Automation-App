@@ -7,4 +7,4 @@ export 'package:adas_development/theme/theme_helper.dart';
 export 'package:adas_development/widgets/custom_image_view.dart';
 export '../theme/custom_button_style.dart';
 export 'package:adas_development/core/utils/date_time_utils.dart';
-export 'package:adas_development/widgets/drawing_area.dart';
+export 'package:adas_development/widgets/drawing_area_clock.dart';

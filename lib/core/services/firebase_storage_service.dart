@@ -1,27 +1,24 @@
 import 'dart:typed_data';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+//TO REMOVE:
+// import 'package:firebase_app_check/firebase_app_check.dart';
 
 class FirebaseStorageService {
   final FirebaseStorage _storage = FirebaseStorage.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Future<String> uploadImage(Uint8List imageBytes, String fileName) async {
-    try{Reference ref = _storage.ref().child('images/$fileName');
-    UploadTask uploadTask = ref.putData(imageBytes);
-    TaskSnapshot snapshot = await uploadTask;
-    return await snapshot.ref.getDownloadURL();
-    }catch(e){
-      print('Error uploading image: $e');
-      return '';
+  Future<String> uploadImageData(Uint8List imageData, String fileName) async {
+    try {
+      // Ensure App Check token is generated
+      // await FirebaseAppCheck.instance.token;
+
+      Reference ref = _storage.ref().child('$fileName');
+      UploadTask uploadTask = ref.putData(imageData);
+      await uploadTask;
+      String downloadUrl = await ref.getDownloadURL();
+      return downloadUrl;
+    } catch (e) {
+      print("Error uploading image to Firebase: $e");
+      throw e;
     }
-  }
-
-  Future<void> saveScore(String imageUrl, int score) async {
-    await _firestore.collection('scores').add({
-      'imageUrl': imageUrl,
-      'score': score,
-      'timestamp': FieldValue.serverTimestamp(),
-    });
   }
 }

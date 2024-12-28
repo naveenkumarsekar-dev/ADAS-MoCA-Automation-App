@@ -29,34 +29,34 @@ class CognitiveAssessmentPageOneScreen extends StatelessWidget {
                               style: theme.textTheme.headlineLarge)),
                       SizedBox(height: 27.v),
                       Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 17.h),
+                          padding: EdgeInsets.symmetric(horizontal: 25.h),
                           child: _buildNaming(context,
-                              namingText: "VISUOSPATIAL / EXECUTIVE",
-                              countText: "0/3", onTapNaming: () {
+                              namingText: "VISUOSPATIAL",
+                              countText: "", onTapNaming: () {
                             onTapNaming(context);
                           })),
                       SizedBox(height: 24.v),
                       Padding(
                           padding: EdgeInsets.symmetric(horizontal: 17.h),
                           child: _buildNaming(context,
-                              namingText: "NAMING",
-                              countText: "0/3", onTapNaming: () {
+                              namingText: "NAMING    ",
+                              countText: "", onTapNaming: () {
                             onTapNaming1(context);
                           })),
                       SizedBox(height: 30.v),
                       Padding(
                           padding: EdgeInsets.symmetric(horizontal: 17.h),
                           child: _buildNaming(context,
-                              namingText: "MEMORY",
-                              countText: "0/1", onTapNaming: () {
+                              namingText: "MEMORY    ",
+                              countText: "", onTapNaming: () {
                             onTapNaming2(context);
                           })),
                       SizedBox(height: 19.v),
                       Padding(
                           padding: EdgeInsets.only(left: 14.h, right: 20.h),
                           child: _buildNaming(context,
-                              namingText: "ATTENTION",
-                              countText: "0/4", onTapNaming: () {
+                              namingText: "ATTENTION ",
+                              countText: "", onTapNaming: () {
                             onTapNaming3(context);
                           })),
                       SizedBox(height: 25.v),
@@ -74,14 +74,23 @@ class CognitiveAssessmentPageOneScreen extends StatelessWidget {
 
   /// Section Widget
   PreferredSizeWidget _buildAppBar(BuildContext context) {
-    return CustomAppBar(
-        leadingWidth: 64.h,
-        leading: AppbarLeadingIconbutton(
-            imagePath: ImageConstant.imgClockBlack9000234x34,
-            margin: EdgeInsets.only(left: 30.h, top: 9.v, bottom: 12.v)),
-        title: AppbarSubtitle(
-            text: "Cognitive Assessment", margin: EdgeInsets.only(left: 38.h)));
-  }
+  return CustomAppBar(
+    leadingWidth: 64.h,
+    leading: GestureDetector(
+      onTap: () {
+        // onTapHomePage(context); // Call the function for navigation
+      },
+      child: AppbarLeadingIconbutton(
+        imagePath: ImageConstant.imgClockBlack9000234x34,
+        margin: EdgeInsets.only(left: 30.h, top: 9.v, bottom: 12.v),
+      ),
+    ),
+    title: AppbarSubtitle(
+      text: "Cognitive Assessment",
+      margin: EdgeInsets.only(left: 38.h),
+    ),
+  );
+}
 
   /// Section Widget
   Widget _buildPrice(BuildContext context) {
@@ -221,5 +230,9 @@ class CognitiveAssessmentPageOneScreen extends StatelessWidget {
   /// Navigates to the attentionTwentyfiveScreen when the action is triggered.
   onTapNaming3(BuildContext context) {
     Navigator.pushNamed(context, AppRoutes.attentionTwentyfiveScreen);
+  }
+  
+  void onTapHomePage(BuildContext context) {
+    Navigator.pushNamed(context, AppRoutes.homePageScreen);
   }
 }
