@@ -35,7 +35,7 @@ class ClockScoringModule {
   score += points; // Add points to the existing score
 
   // Show the result
-  showResultDialog(context, "Prediction confidence: $confidence\nPoints: $points\nUpdated Score: $score");
+  showResultDialog(context, " VS section Score: $score");
 
   // Clean up temporary files
   await cleanupTemporaryFiles(imageFile.path);

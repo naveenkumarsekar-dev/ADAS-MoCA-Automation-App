@@ -208,12 +208,12 @@ Future<File?> _downloadImageFile(String imagePath) async {
 
   /// Navigates to the cognitiveAssessmentPageOneScreen when the action is triggered.
   onTapBtnClock(BuildContext context) {
-    Navigator.pushNamed(context, AppRoutes.cognitiveAssessmentPageOneScreen);
+    Navigator.pushNamed(context, AppRoutes.visuospatialPageTwoScreen);
   }
 
   /// Navigates to the cognitiveAssessmentPageScreen when the action is triggered.
   onTapFinish(BuildContext context) {
-    Navigator.pushNamed(context, AppRoutes.visuospatialPageThreeScreen);
+    Navigator.pushNamed(context, AppRoutes.cognitiveAssessmentPageOneScreen);
   }
 
   /// Navigates to the visuospatialPageTwoScreen when the action is triggered.

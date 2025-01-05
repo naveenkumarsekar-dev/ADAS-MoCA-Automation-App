@@ -1,20 +1,14 @@
-// import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-//TO REMOVE:
-// import 'package:firebase_storage/firebase_storage.dart';
 import 'package:adas_development/core/services/firebase_storage_service.dart';
 import 'package:image/image.dart' as img;
 
 class DrawingArea extends StatefulWidget {
   final Function(String) onImageCaptured;
-  // TO REMOVE:
-  // final List<Offset> numberPositions; // New parameter for number positions
   DrawingArea({required this.onImageCaptured, Key? key}) : super(key: key);
-  
 
   @override
   DrawingAreaState createState() => DrawingAreaState();
@@ -22,185 +16,240 @@ class DrawingArea extends StatefulWidget {
 
 class DrawingAreaState extends State<DrawingArea> {
   GlobalKey _globalKey = GlobalKey();
-  List<Offset?> points = [];
-  
-  final List<int?> placedNumbers = List.filled(12, null); // To track placed numbers
-
-  // GlobalKey to reference the Stack
-  // final GlobalKey _stackKey = GlobalKey(); 
-  // Map to store the position of each number
-  Map<int, Offset> numberPositions = {};  
+  List<Map<String, dynamic>> points = []; // Stores points with additional metadata
+  List<List<Map<String, dynamic>>> pointsHistory = []; // Stack to store canvas states for undo
+  List<List<Map<String, dynamic>>> redoStack = []; // Stack to store canvas states for redo
+  Map<int, Offset> numberPositions = {}; // To store placed numbers
+  bool isErasing = false;
+  double eraserThickness = 10.0; // Current thickness for the eraser
+  double pendingEraserThickness = 10.0; // Slider value for the next eraser stroke
 
   @override
   Widget build(BuildContext context) {
-    //TO REMOVE:
-    // List<Offset> clockPositions = getClockPositions();
-    // Repaint boundary for capturing the image
     return Column(
       children: [
-        // Drawing area with clock
-        RepaintBoundary(
-          key: _globalKey,
-          child: ClipRect(
-            child: DragTarget<int>(
-              // Accept integers (or any type) representing dragged numbers
-              onAcceptWithDetails: (details) {
-                setState(() {
-                  // Convert global position to local position
-                  RenderBox renderBox = context.findRenderObject() as RenderBox;
-                  Offset localPosition = renderBox.globalToLocal(details.offset);
-                  numberPositions[details.data] = localPosition;
-                });
-              },
-              builder: (context, candidateData, rejectedData) {
-                return GestureDetector(
-                  onPanUpdate: (details) {
+        Expanded(
+          child: Stack(
+            children: [
+              RepaintBoundary(
+                key: _globalKey,
+                child: DragTarget<int>(
+                  onAcceptWithDetails: (details) {
                     RenderBox renderBox = context.findRenderObject() as RenderBox;
-                    Offset localPosition = renderBox.globalToLocal(details.globalPosition);
+                    Offset localPosition = renderBox.globalToLocal(details.offset);
 
-                    if (localPosition.dx >= 0 &&
-                        localPosition.dx <= renderBox.size.width &&
-                        localPosition.dy >= 0 &&
-                        localPosition.dy <= renderBox.size.height) {
-                      setState(() {
-                        points.add(localPosition);
-                      });
-                    }
+                    setState(() {
+                      numberPositions[details.data] = localPosition; // Store the number's position
+                    });
                   },
-                  onPanEnd: (details) {
-                    points.add(null);
-                  },
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      CustomPaint(
-                        painter: MyPainter(points),
-                        size: Size(
-                          MediaQuery.of(context).size.width,
-                          MediaQuery.of(context).size.height * 0.49,
-                        ),
+                  builder: (context, candidateData, rejectedData) {
+                    return GestureDetector(
+                      onPanStart: (details) {
+                        // Save current state for undo and clear redo stack
+                        pointsHistory.add(List.from(points));
+                        redoStack.clear();
+                        if (isErasing) {
+                          setState(() {
+                            eraserThickness = pendingEraserThickness;
+                          });
+                        }
+                      },
+                      onPanUpdate: (details) {
+                        RenderBox renderBox = context.findRenderObject() as RenderBox;
+                        Offset localPosition = renderBox.globalToLocal(details.globalPosition);
+
+                        if (localPosition.dx >= 0 &&
+                            localPosition.dx <= renderBox.size.width &&
+                            localPosition.dy >= 0 &&
+                            localPosition.dy <= renderBox.size.height) {
+                          setState(() {
+                            points.add({
+                              "offset": localPosition,
+                              "isErasing": isErasing,
+                              "thickness": isErasing ? eraserThickness : 5.0,
+                            });
+                          });
+                        }
+                      },
+                      onPanEnd: (details) {
+                        points.add({
+                          "offset": null,
+                          "isErasing": false,
+                          "thickness": 0.0,
+                        });
+                      },
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          CustomPaint(
+                            painter: MyPainter(points),
+                            size: Size.infinite,
+                          ),
+                          ...numberPositions.entries.map((entry) {
+                            return Positioned(
+                              left: entry.value.dx,
+                              top: entry.value.dy,
+                              child: Text(
+                                entry.key.toString(),
+                                style: TextStyle(fontSize: 30, color: Colors.black),
+                              ),
+                            );
+                          }).toList(),
+                        ],
                       ),
-                      // Display placed numbers
-                      ...numberPositions.entries.map((entry) {
-                        return Positioned(
-                          left: entry.value.dx,
-                          top: entry.value.dy,
-                          child: Text(entry.key.toString(), style: TextStyle(fontSize: 30)),
-                        );
-                      }).toList(),
+                    );
+                  },
+                ),
+              ),
+              Positioned(
+                top: 10.0,
+                right: 10.0,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.undo, color: pointsHistory.isNotEmpty ? Colors.blue : Colors.grey),
+                      onPressed: pointsHistory.isNotEmpty
+                          ? () {
+                              setState(() {
+                                redoStack.add(List.from(points)); // Save current state for redo
+                                points = pointsHistory.removeLast(); // Restore the previous state
+                              });
+                            }
+                          : null,
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.redo, color: redoStack.isNotEmpty ? Colors.blue : Colors.grey),
+                      onPressed: redoStack.isNotEmpty
+                          ? () {
+                              setState(() {
+                                pointsHistory.add(List.from(points)); // Save current state for undo
+                                points = redoStack.removeLast(); // Restore the next state
+                              });
+                            }
+                          : null,
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.create, color: isErasing ? Colors.grey : Colors.blue),
+                      onPressed: () {
+                        setState(() {
+                          isErasing = false; // Switch to pen mode
+                        });
+                      },
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.cleaning_services, color: isErasing ? Colors.blue : Colors.grey),
+                      onPressed: () {
+                        setState(() {
+                          isErasing = true; // Switch to eraser mode
+                        });
+                      },
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.delete, color: Colors.red),
+                      onPressed: () {
+                        setState(() {
+                          points.clear(); // Clear all points
+                          pointsHistory.clear(); // Clear history
+                          redoStack.clear(); // Clear redo history
+                          numberPositions.clear(); // Clear all numbers
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              if (isErasing)
+                Positioned(
+                  bottom: 20.0,
+                  left: 10.0,
+                  right: 10.0,
+                  child: Column(
+                    children: [
+                      Text("Eraser Thickness: ${pendingEraserThickness.toStringAsFixed(1)}"),
+                      Slider(
+                        value: pendingEraserThickness,
+                        min: 5.0,
+                        max: 50.0,
+                        onChanged: (value) {
+                          setState(() {
+                            pendingEraserThickness = value; // Update thickness for future strokes
+                          });
+                        },
+                      ),
                     ],
                   ),
-                );
-              },
-            ),
+                ),
+            ],
           ),
         ),
       ],
     );
-    
   }
 
-Future<void> captureAndUploadImage() async {
-  try {
-    RenderRepaintBoundary boundary = _globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-    var image = await boundary.toImage(pixelRatio: 3.0);
-    ByteData? byteData = await image.toByteData(format: ImageByteFormat.png);
-    if (byteData != null) {
-      // Convert ByteData to Uint8List for processing
-      Uint8List pngBytes = byteData.buffer.asUint8List();
+  Future<void> captureAndUploadImage() async {
+    try {
+      RenderRepaintBoundary boundary = _globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+      var image = await boundary.toImage(pixelRatio: 3.0);
+      ByteData? byteData = await image.toByteData(format: ImageByteFormat.png);
+      if (byteData != null) {
+        Uint8List pngBytes = byteData.buffer.asUint8List();
 
-      // Decode PNG to an Image object from the image package
-      img.Image? decodedImage = img.decodePng(pngBytes);
+        img.Image? decodedImage = img.decodePng(pngBytes);
 
-      if (decodedImage != null) {
-        // Re-encode the image to JPG format
-        Uint8List jpgBytes = Uint8List.fromList(img.encodeJpg(decodedImage));
+        if (decodedImage != null) {
+          Uint8List jpgBytes = Uint8List.fromList(img.encodeJpg(decodedImage));
 
-        // Upload the JPG bytes to Firebase Storage
-        await uploadToFirebase(jpgBytes);
+          await uploadToFirebase(jpgBytes);
+        }
       }
+    } catch (e) {
+      print("Error capturing and uploading image: $e");
     }
-  } catch (e) {
-    print("Error capturing and uploading image: $e");
   }
-}
-
 
   Future<void> uploadToFirebase(Uint8List imageData) async {
-  try {
-    FirebaseStorageService storageService = FirebaseStorageService();
-     // Generate a unique filename using the current timestamp
-    // String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-    // String uniqueFileName = 'clock_class_three/drawing_$timestamp.jpg';
-    // Generate a sequential filename using SharedPreferences
-    String uniqueFileName = await generateSequentialFileName();
+    try {
+      FirebaseStorageService storageService = FirebaseStorageService();
+      String uniqueFileName = await generateSequentialFileName();
+      String downloadUrl = await storageService.uploadImageData(imageData, uniqueFileName);
+      print("Image uploaded successfully. Download URL: $downloadUrl");
 
-    // Specify the path within Firebase Storage
-    String downloadUrl = await storageService.uploadImageData(imageData, uniqueFileName);
-    print("Image uploaded successfully. Download URL: $downloadUrl");
-    // TO DECREMENT THE CURRENTCOUNT VALUE BY 1
-    // await decrementImageCount()
-
-    // TO PREDICT THE CLOCK SCORE
-    widget.onImageCaptured(uniqueFileName);
-  } catch (e) {
-    print("Error uploading image to Firebase: $e");
+      widget.onImageCaptured(uniqueFileName);
+    } catch (e) {
+      print("Error uploading image to Firebase: $e");
+    }
   }
 }
 
-}
-// Function to generate a unique, sequential file name
 Future<String> generateSequentialFileName() async {
   final prefs = await SharedPreferences.getInstance();
-  
-  // Retrieve the current image count or start from 1 if it doesn't exist
   int currentCount = prefs.getInt('image_count') ?? 1;
-  
-  // Generate the file name using the current count
-  String uniqueFileName = 'uploads/capstone/clock_$currentCount.jpg';
-  
-  // Increment the count and save it for the next image
+  String uniqueFileName = 'uploads/capstone/clock_testing/clock_$currentCount.jpg';
   await prefs.setInt('image_count', currentCount + 1);
-  // print(currentCount);
-  
   return uniqueFileName;
 }
-// TO DECREMENT THE CURRENTCOUNT VALUE BY 1
-// // Function to decrement the image count
-// Future<void> decrementImageCount() async {
-//   final prefs = await SharedPreferences.getInstance();
-  
-//   // Retrieve the current count, defaulting to 1 if not found
-//   int currentCount = prefs.getInt('image_count') ?? 1;
-  
-//   // Only decrement if currentCount is greater than 1
-//   if (currentCount > 1) {
-//     await prefs.setInt('image_count', currentCount - 1);
-//   }
-//   print(currentCount);
-// }
-
 
 class MyPainter extends CustomPainter {
-  List<Offset?> points;
+  List<Map<String, dynamic>> points;
 
   MyPainter(this.points);
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Fill the background with white
     canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), Paint()..color = Colors.white);
-    // Set up the paint for drawing lines
-    Paint paint = Paint()
-      ..color = Colors.black
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = 5.0;
+
+    Paint paint = Paint()..strokeCap = StrokeCap.round;
 
     for (int i = 0; i < points.length - 1; i++) {
-      if (points[i] != null && points[i + 1] != null) {
-        canvas.drawLine(points[i]!, points[i + 1]!, paint);
-      } else if (points[i] != null && points[i + 1] == null) {
-        canvas.drawPoints(PointMode.points, [points[i]!], paint);
+      if (points[i]["offset"] != null && points[i + 1]["offset"] != null) {
+        paint.color = points[i]["isErasing"] ? Colors.white : Colors.black;
+        paint.strokeWidth = points[i]["thickness"] ?? 5.0; // Use stored thickness or default
+        canvas.drawLine(points[i]["offset"], points[i + 1]["offset"], paint);
+      } else if (points[i]["offset"] != null && points[i + 1]["offset"] == null) {
+        paint.color = points[i]["isErasing"] ? Colors.white : Colors.black;
+        paint.strokeWidth = points[i]["thickness"] ?? 5.0; // Use stored thickness or default
+        canvas.drawPoints(PointMode.points, [points[i]["offset"]], paint);
       }
     }
   }
@@ -209,5 +258,4 @@ class MyPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
     return true;
   }
-  
 }

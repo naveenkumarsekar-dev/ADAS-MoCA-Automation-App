@@ -18,6 +18,8 @@ class CubeDrawingArea extends StatefulWidget {
 class CubeDrawingAreaState extends State<CubeDrawingArea> {
   GlobalKey _globalKey = GlobalKey();
   List<Map<String, dynamic>> points = []; // Stores points with additional metadata
+  List<List<Map<String, dynamic>>> pointsHistory = []; // Stack to store canvas states for undo
+  List<List<Map<String, dynamic>>> redoStack = []; // Stack to store canvas states for redo
   bool isErasing = false;
   double eraserThickness = 10.0; // Current thickness for the eraser
   double pendingEraserThickness = 10.0; // Slider value for the next eraser stroke
@@ -33,7 +35,10 @@ class CubeDrawingAreaState extends State<CubeDrawingArea> {
                 key: _globalKey,
                 child: GestureDetector(
                   onPanStart: (details) {
-                    // Apply the pending thickness only for new eraser strokes
+                    // Save current state for undo and clear redo stack
+                    pointsHistory.add(List.from(points));
+                    redoStack.clear();
+
                     if (isErasing) {
                       setState(() {
                         eraserThickness = pendingEraserThickness;
@@ -49,7 +54,6 @@ class CubeDrawingAreaState extends State<CubeDrawingArea> {
                         localPosition.dy >= 0 &&
                         localPosition.dy <= renderBox.size.height) {
                       setState(() {
-                        // Add points with the current eraser thickness
                         points.add({
                           "offset": localPosition,
                           "isErasing": isErasing,
@@ -79,6 +83,28 @@ class CubeDrawingAreaState extends State<CubeDrawingArea> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
+                      icon: Icon(Icons.undo, color: pointsHistory.isNotEmpty ? Colors.blue : Colors.grey),
+                      onPressed: pointsHistory.isNotEmpty
+                          ? () {
+                              setState(() {
+                                redoStack.add(List.from(points)); // Save current state for redo
+                                points = pointsHistory.removeLast(); // Restore the previous state
+                              });
+                            }
+                          : null,
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.redo, color: redoStack.isNotEmpty ? Colors.blue : Colors.grey),
+                      onPressed: redoStack.isNotEmpty
+                          ? () {
+                              setState(() {
+                                pointsHistory.add(List.from(points)); // Save current state for undo
+                                points = redoStack.removeLast(); // Restore the next state
+                              });
+                            }
+                          : null,
+                    ),
+                    IconButton(
                       icon: Icon(Icons.create, color: isErasing ? Colors.grey : Colors.blue),
                       onPressed: () {
                         setState(() {
@@ -99,6 +125,8 @@ class CubeDrawingAreaState extends State<CubeDrawingArea> {
                       onPressed: () {
                         setState(() {
                           points.clear(); // Clear all points from the canvas
+                          pointsHistory.clear(); // Clear history
+                          redoStack.clear(); // Clear redo history
                         });
                       },
                     ),
@@ -170,8 +198,8 @@ class CubeDrawingAreaState extends State<CubeDrawingArea> {
 
 Future<String> generateSequentialFileName() async {
   final prefs = await SharedPreferences.getInstance();
-  int currentCount = prefs.getInt('image_count') ?? 1;
-  String uniqueFileName = 'uploads/capstone/cube_testing/cube_$currentCount.jpg';// TO CHANGE: CUBE_0 WHEN BUILD THE APK FOR NON-CUBE DATASET
+  int currentCount = prefs.getInt('image_count') ?? 78;
+  String uniqueFileName = 'uploads/capstone/cube_frd_1/cube_$currentCount.jpg'; // TO CHANGE: CUBE_0 WHEN BUILD THE APK FOR NON-CUBE DATASET
   await prefs.setInt('image_count', currentCount + 1);
   return uniqueFileName;
 }

@@ -21,7 +21,7 @@ class VisuospatialPageTwoScreen extends StatefulWidget {
 class _VisuospatialPageTwoScreenState extends State<VisuospatialPageTwoScreen> {
   int? score; // Variable to store the score
   GlobalKey<CubeDrawingAreaState> _drawingAreaKey = GlobalKey<CubeDrawingAreaState>();
-  // UNDO AFTER CUBE DATASET IS DONE
+  // TO UNDO: AFTER CUBE DATASET IS DONE
   // late CubeScoringModule _cubeScoringModule;
   @override
   void didChangeDependencies() {
@@ -33,7 +33,7 @@ class _VisuospatialPageTwoScreenState extends State<VisuospatialPageTwoScreen> {
       print("Score received: $score"); // Debugging purpose
     }
   }
-  // UNDO AFTER CUBE DATASET IS DONE
+  // TO UNDO: AFTER CUBE DATASET IS DONE
   // @override
   // void initState() {
   //   super.initState();
@@ -41,7 +41,7 @@ class _VisuospatialPageTwoScreenState extends State<VisuospatialPageTwoScreen> {
   // }
   void _onImageCaptured(String imagePath) async {
 
-  // UNDO AFTER CUBE DATASET IS DONE
+  // TO UNDO: AFTER CUBE DATASET IS DONE
   // // Download the image from Firebase Storage
   // File? imageFile = await _downloadImageFile(imagePath);
   // print("Image downloaded: ${imageFile?.path}");
@@ -61,7 +61,7 @@ class _VisuospatialPageTwoScreenState extends State<VisuospatialPageTwoScreen> {
   // }
 }
 
-// UNDO AFTER CUBE DATASET IS DONE
+// TO UNDO: AFTER CUBE DATASET IS DONE
 // // Function to download the image file from Firebase Storage
 // Future<File?> _downloadImageFile(String imagePath) async {
 //   try {
@@ -205,7 +205,7 @@ class _VisuospatialPageTwoScreenState extends State<VisuospatialPageTwoScreen> {
   onTapNext(BuildContext context) {
     Navigator.pushNamed(
       context,
-      AppRoutes.visuospatialPageThreeScreen,
+      AppRoutes.visuospatialPageTwoScreen,
       arguments: {"score": score}, // Pass the score as an argument
     );
   }
