@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 class ClockScoringModule {
-  late Interpreter _interpreter;
+  late Interpreter _clockInterpreter;
 
   // Constructor to initialize and load the model
   ClockScoringModule() {
@@ -13,7 +13,7 @@ class ClockScoringModule {
 
   // Load the TFLite model using tflite_flutter
   Future<void> _loadModel() async {
-    _interpreter = await Interpreter.fromAsset('assets/clock_model.tflite');
+    _clockInterpreter = await Interpreter.fromAsset('assets/clock_model.tflite');
   }
 
   Future<int> predictClock(File imageFile, BuildContext context, int score) async {
@@ -27,7 +27,7 @@ class ClockScoringModule {
   var output = List<List<double>>.filled(1, List<double>.filled(1, 0.0));
 
   // Run the model
-  _interpreter.run(input, output);
+  _clockInterpreter.run(input, output);
 
   // Interpret the result
   double confidence = output[0][0];

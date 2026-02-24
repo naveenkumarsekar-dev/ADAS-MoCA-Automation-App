@@ -198,8 +198,8 @@ class CubeDrawingAreaState extends State<CubeDrawingArea> {
 
 Future<String> generateSequentialFileName() async {
   final prefs = await SharedPreferences.getInstance();
-  int currentCount = prefs.getInt('image_count') ?? 78;
-  String uniqueFileName = 'uploads/capstone/cube_frd_1/cube_$currentCount.jpg'; // TO CHANGE: CUBE_0 WHEN BUILD THE APK FOR NON-CUBE DATASET
+  int currentCount = prefs.getInt('image_count') ?? 1000;// TO CHANGE:78->1  WHILE BUILDING NEW CUBE_0 APK
+  String uniqueFileName = 'uploads/capstone/new_cube/cube_$currentCount.jpg'; // TO CHANGE: CUBE_0 WHEN BUILD THE APK FOR NON-CUBE DATASET
   await prefs.setInt('image_count', currentCount + 1);
   return uniqueFileName;
 }

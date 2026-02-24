@@ -4,11 +4,11 @@ import 'package:adas_development/core/app_export.dart';// Import the DrawingArea
 import 'package:adas_development/widgets/custom_elevated_button.dart';
 import 'package:adas_development/widgets/custom_icon_button.dart';
 // TO UNDO: AFTER THE CUBE DATASET IS DONE
-// import 'dart:io'; 
-// import 'package:path_provider/path_provider.dart';
-// import 'package:firebase_storage/firebase_storage.dart';
+import 'dart:io'; 
+import 'package:path_provider/path_provider.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 // import 'package:adas_development/core/scoring/clock_scoring.dart';
-// import 'package:adas_development/core/scoring/cube_scoring.dart';
+import 'package:adas_development/core/scoring/cube_scoring.dart';
 
 
 class VisuospatialPageTwoScreen extends StatefulWidget {
@@ -22,7 +22,7 @@ class _VisuospatialPageTwoScreenState extends State<VisuospatialPageTwoScreen> {
   int? score; // Variable to store the score
   GlobalKey<CubeDrawingAreaState> _drawingAreaKey = GlobalKey<CubeDrawingAreaState>();
   // TO UNDO: AFTER CUBE DATASET IS DONE
-  // late CubeScoringModule _cubeScoringModule;
+  late CubeScoringModule _cubeScoringModule;
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -34,53 +34,53 @@ class _VisuospatialPageTwoScreenState extends State<VisuospatialPageTwoScreen> {
     }
   }
   // TO UNDO: AFTER CUBE DATASET IS DONE
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   _cubeScoringModule = CubeScoringModule(); // Initialize the cube scoring module
-  // }
+  @override
+  void initState() {
+    super.initState();
+    _cubeScoringModule = CubeScoringModule(); // Initialize the cube scoring module
+  }
   void _onImageCaptured(String imagePath) async {
 
   // TO UNDO: AFTER CUBE DATASET IS DONE
   // // Download the image from Firebase Storage
-  // File? imageFile = await _downloadImageFile(imagePath);
-  // print("Image downloaded: ${imageFile?.path}");
+  File? imageFile = await _downloadImageFile(imagePath);
+  print("Image downloaded: ${imageFile?.path}");
 
-  // if (imageFile != null) {
-  //   // Use the cube scoring module with the downloaded image file
-  //   int updatedScore = await _cubeScoringModule.predictCube(imageFile, context, score ?? 0);
+  if (imageFile != null) {
+    // Use the cube scoring module with the downloaded image file
+    int updatedScore = await _cubeScoringModule.predictCube(imageFile, context, score ?? 0);
 
-  //   // Update the local score
-  //   setState(() {
-  //     score = updatedScore;
-  //   });
+    // Update the local score
+    setState(() {
+      score = updatedScore;
+    });
 
-  //   print("Updated Score: $score");
-  // } else {
-  //   print("Failed to download the image.");
-  // }
+    print("Updated Score: $score");
+  } else {
+    print("Failed to download the image.");
+  }
 }
 
 // TO UNDO: AFTER CUBE DATASET IS DONE
-// // Function to download the image file from Firebase Storage
-// Future<File?> _downloadImageFile(String imagePath) async {
-//   try {
-//     // Get the Firebase Storage reference
-//     final Reference storageRef = FirebaseStorage.instance.ref().child(imagePath);
+// Function to download the image file from Firebase Storage
+Future<File?> _downloadImageFile(String imagePath) async {
+  try {
+    // Get the Firebase Storage reference
+    final Reference storageRef = FirebaseStorage.instance.ref().child(imagePath);
 
-//     // Get the directory to save the downloaded image
-//     final Directory tempDir = await getTemporaryDirectory();
-//     final String tempPath = '${tempDir.path}/temp_image.jpg';
+    // Get the directory to save the downloaded image
+    final Directory tempDir = await getTemporaryDirectory();
+    final String tempPath = '${tempDir.path}/temp_image.jpg';
   
-//     // Download and save the image to a file
-//     await storageRef.writeToFile(File(tempPath));
+    // Download and save the image to a file
+    await storageRef.writeToFile(File(tempPath));
 
-//     return File(tempPath);
-//   } catch (e) {
-//     print("Error downloading image: $e");
-//     return null;
-//   }
-// }
+    return File(tempPath);
+  } catch (e) {
+    print("Error downloading image: $e");
+    return null;
+  }
+}
 
   
 

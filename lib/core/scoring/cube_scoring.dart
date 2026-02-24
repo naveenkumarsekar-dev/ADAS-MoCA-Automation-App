@@ -13,7 +13,7 @@ class CubeScoringModule {
 
   // Load the TFLite model using tflite_flutter
   Future<void> _loadModel() async {
-    _interpreter = await Interpreter.fromAsset('assets/cube_model.tflite');//AFTER CUBE DATASET IS DONE , GIVE TO ACTUAL CUBE MODEL
+    _interpreter = await Interpreter.fromAsset('assets/cube_model_100epoch.tflite');//AFTER CUBE DATASET IS DONE , GIVE TO ACTUAL CUBE MODEL
   }
 
  Future<int> predictCube(File imageFile, BuildContext context, int score) async {
@@ -31,7 +31,7 @@ class CubeScoringModule {
 
   // Interpret the result
   double confidence = output[0][0];
-  int points = confidence > 0.6 ? 3 : 0; // Add 3 points if confidence > 0.6
+  int points = confidence > 0.5 ? 1 : 0; // Add 1 points if confidence > 0.6
   score += points; // Increment the score
 
   // Show the result
@@ -46,32 +46,32 @@ class CubeScoringModule {
 
   // Image processing: resize and normalize the image for the model
   Future<List<List<List<List<double>>>>> _processImage(File imageFile) async {
-    final imageBytes = await imageFile.readAsBytes();
-    img.Image? image = img.decodeImage(imageBytes);
+  final imageBytes = await imageFile.readAsBytes();
+  img.Image? image = img.decodeImage(imageBytes);
 
-    // Resize image to 224x224
-    img.Image resizedImage = img.copyResize(image!, width: 224, height: 224);
+  // Resize to 224x224
+  img.Image resizedImage = img.copyResize(image!, width: 224, height: 224);
 
-    // Create input tensor with batch size of 1
-    List<List<List<List<double>>>> input = List.generate(
-      1, // Batch size
-      (b) => List.generate(
-        224, // Height
-        (y) => List.generate(224, (x) {
-          // Get pixel value and normalize
-          final pixel = resizedImage.getPixel(x, y);
-          double red = (pixel.r / 127.5) - 1.0;
-          double green = (pixel.g / 127.5) - 1.0;
-          double blue = (pixel.b / 127.5) - 1.0;
+  // Normalize (same as preprocess_input)
+  List<List<List<List<double>>>> input = List.generate(
+    1, // Batch size
+    (b) => List.generate(
+      224,
+      (y) => List.generate(224, (x) {
+        final pixel = resizedImage.getPixel(x, y);
+        return [
+          (pixel.r / 127.5) - 1.0,
+          (pixel.g / 127.5) - 1.0,
+          (pixel.b / 127.5) - 1.0
+        ];
+      }),
+    ),
+  );
 
-          // Return the normalized RGB values as a list
-          return [red, green, blue];
-        }),
-      ),
-    );
+  return input;
+}
 
-    return input;
-  }
+
 
   Future<void> cleanupTemporaryFiles(String tempPath) async {
     try {
